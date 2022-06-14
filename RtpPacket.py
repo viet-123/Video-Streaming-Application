@@ -9,17 +9,19 @@ class RtpPacket:
 		pass
 		
 	def encode(self, version, padding, extension, cc, seqnum, marker, pt, ssrc, payload):
+        
 		"""Encode the RTP packet with header fields and payload."""
+        
 		timestamp = int(time())
 		header = bytearray(HEADER_SIZE)
+    
 		#--------------
 		# TO COMPLETE
 		#--------------
+        
+        
 		# Fill the header bytearray with RTP header fields
-		
-		# header[0] = ...
-		# ...
-		header[0] = (header[0] | version << 6) & 0xC0;    		# 2 bits
+		header[0]=(header[0]|version<<6)&0xC0;    				# 2 bits
 		header[0] = (header[0] | padding << 5); 				# 1 bit
 		header[0] = (header[0] | extension << 4);               # 1 bit
 		header[0] = (header[0] | (cc & 0x0F));                  # 4 bits
@@ -37,13 +39,14 @@ class RtpPacket:
 		header[11] = ssrc & 0xFF
 		
 		self.header = header
-		
-		# Get the payload from the argument
-		# self.payload = ...
+        
+		#Get the payload from the argument
 		self.payload = payload
 		
 	def decode(self, byteStream):
+        
 		"""Decode the RTP packet."""
+        
 		self.header = bytearray(byteStream[:HEADER_SIZE])
 		self.payload = byteStream[HEADER_SIZE:]
 	
