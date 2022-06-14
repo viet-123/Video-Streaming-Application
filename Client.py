@@ -13,6 +13,10 @@ CACHE_FILE_EXT = ".jpg"
 
 class Client:
 
+	SETUP_STR = 'SETUP'
+	PLAY_STR = 'PLAY'
+	PAUSE_STR = 'PAUSE'
+	TEARDOWN_STR = 'TEARDOWN'
 	INIT = 0
 	READY = 1
 	PLAYING = 2
@@ -25,11 +29,8 @@ class Client:
 	
 	RTSP_VER = "RTSP/1.0"
 	TRANSPORT = "RTP/UDP"
-
-	SETUP_STR = 'SETUP'
-	PLAY_STR = 'PLAY'
-	PAUSE_STR = 'PAUSE'
-	TEARDOWN_STR = 'TEARDOWN'
+	
+	
 	
 	# Initiation..
 	def __init__(self, master, serveraddr, serverport, rtpport, filename):
@@ -47,7 +48,6 @@ class Client:
 		self.connectToServer()
 		self.frameNbr = 0
 		
-	# THIS GUI IS JUST FOR REFERENCE ONLY, STUDENTS HAVE TO CREATE THEIR OWN GUI 	
 	def createWidgets(self):
 		"""Build GUI."""
 		# Create Setup button
@@ -83,11 +83,10 @@ class Client:
 		if self.state == self.INIT:
 			self.sendRtspRequest(self.SETUP)
 	
-	
 	def exitClient(self):
 		"""Teardown button handler."""
 		self.sendRtspRequest(self.TEARDOWN)		
-		#self.master.destroy() # Close the GUI window
+		self.master.destroy() # Close the gui window
 		os.remove(CACHE_FILE_NAME + str(self.sessionId) + CACHE_FILE_EXT) # Delete the cache image from video
 
 	def pauseMovie(self):
@@ -138,6 +137,7 @@ class Client:
 		file = open(cachename, "wb")
 		file.write(data)
 		file.close()
+		
 		return cachename
 	
 	def updateMovie(self, imageFile):
@@ -159,6 +159,7 @@ class Client:
 		#-------------
 		# TO COMPLETE
 		#-------------
+		
 		# Setup request
 		if requestCode == self.SETUP and self.state == self.INIT:
 			threading.Thread(target=self.recvRtspReply).start()
@@ -222,8 +223,6 @@ class Client:
 		self.rtspSocket.send(request.encode())
 		
 		print ('\nData Sent:\n' + request)
-		
-	
 	
 	def recvRtspReply(self):
 		"""Receive RTSP reply from the server."""
@@ -243,49 +242,64 @@ class Client:
 		"""Parse the RTSP reply from the server."""
 		lines = data.decode().split('\n')
 		seqNum = int(lines[1].split(' ')[1])
+		
 		# Process only if the server reply's sequence number is the same as the request's
 		if seqNum == self.rtspSeq:
 			session = int(lines[2].split(' ')[1])
 			# New RTSP session ID
 			if self.sessionId == 0:
 				self.sessionId = session
+			
 			# Process only if the session ID is the same
 			if self.sessionId == session:
 				if int(lines[0].split(' ')[1]) == 200: 
 					if self.requestSent == self.SETUP:
+						#-------------
+						# TO COMPLETE
+						#-------------
+                        
+                        
 						# Update RTSP state.
 						self.state = self.READY
+						
 						# Open RTP port.
-						self.openRtpPort()
+						self.openRtpPort() 
 					elif self.requestSent == self.PLAY:
 						self.state = self.PLAYING
 					elif self.requestSent == self.PAUSE:
 						self.state = self.READY
+                        
+						
 						# The play thread exits. A new thread is created on resume.
 						self.playEvent.set()
 					elif self.requestSent == self.TEARDOWN:
 						self.state = self.INIT
+						
 						# Flag the teardownAcked to close the socket.
-						self.teardownAcked = 1
+						self.teardownAcked = 1 
 	
 	def openRtpPort(self):
 		"""Open RTP socket binded to a specified port."""
+    
 		#-------------
 		# TO COMPLETE
 		#-------------
+        
+        
 		# Create a new datagram socket to receive RTP packets from the server
-		# self.rtpSocket = ...
-		self.rtpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)		
+		self.rtpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            
+		
 		# Set the timeout value of the socket to 0.5sec
 		self.rtpSocket.settimeout(0.5)
-		# ...
+		
 		try:
 			# Bind the socket to the address using the RTP port given by the client user.
 			self.state=self.READY
 			self.rtpSocket.bind(('',self.rtpPort))
 		except:
 			messagebox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' %self.rtpPort)
-		
+
 	def handler(self):
 		"""Handler on explicitly closing the GUI window."""
 		self.pauseMovie()
